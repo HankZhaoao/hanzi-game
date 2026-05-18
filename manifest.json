@@ -2,7 +2,7 @@
   "name": "快乐识字乐园",
   "short_name": "识字乐园",
   "description": "儿童汉字学习游戏，结合艾宾浩斯记忆曲线",
-  "start_url": "/",
+  "start_url": "/hanzi-game/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
