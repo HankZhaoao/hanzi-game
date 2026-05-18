@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="识字乐园">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <title>快乐识字乐园 - 儿童汉字学习游戏</title>
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --primary-dark: #ee5a6f;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --purple: #a55eea;
+            --blue: #45b7d1;
+            --pink: #ff9ff3;
+            --green: #26de81;
+            --orange: #fd9644;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ===== 彩虹顶栏 ===== */
+        .rainbow-bar {
+            height: 6px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff, #5f27cd);
+        }
+
+        /* ===== 页面切换 ===== */
+        .page {
+            display: none;
+            padding: 24px 20px;
+            animation: pageIn 0.4s ease-out;
+        }
+        .page.active { display: block; }
+
+        @keyframes pageIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== 首页 ===== */
+        .home-header {
+            text-align: center;
+            padding: 20px 0 10px;
+        }
+        .home-title {
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,.2);
+            letter-spacing: 4px;
+        }
+        .home-subtitle {
+            color: rgba(255,255,255,.8);
+            font-size: .95rem;
+            margin-top: 6px;
+        }
+
+        /* 统计卡片 */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            flex: 1;
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 16px 8px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+        }
+        .stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--purple);
+        }
+        .stat-label {
+            font-size: .8rem;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        /* 待学/待复习信息 */
+        .queue-info {
+            background: rgba(255,255,255,.15);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .queue-item {
+            text-align: center;
+        }
+        .queue-item .num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+        }
+        .queue-item .label {
+            font-size: .8rem;
+            color: rgba(255,255,255,.7);
+            margin-top: 2px;
+        }
+        .queue-divider {
+            width: 1px;
+            height: 40px;
+            background: rgba(255,255,255,.3);
+        }
+
+        /* 开始学习按钮 */
+        .start-btn {
+            display: block;
+            width: 100%;
+            padding: 22px;
+            border: none;
+            border-radius: 24px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            cursor: pointer;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            box-shadow: 0 8px 30px rgba(0,184,148,.5);
+            transition: transform .2s, box-shadow .2s;
+            -webkit-tap-highlight-color: transparent;
+            letter-spacing: 2px;
+        }
+        .start-btn:active { transform: scale(.96); }
+        .start-btn .sub {
+            display: block;
+            font-size: .85rem;
+            font-weight: 500;
+            opacity: .85;
+            margin-top: 4px;
+            letter-spacing: 0;
+        }
+
+        /* ===== 学习页 ===== */
+        .page-title {
+            text-align: center;
+            font-size: 1.4rem;
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        /* 字符类型标签 */
+        .char-type-tag {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: .85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .tag-new {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            color: #fff;
+        }
+        .tag-review {
+            background: linear-gradient(135deg, #feca57, #f39c12);
+            color: #fff;
+        }
+
+        .learn-card {
+            background: #fff;
+            border-radius: 28px;
+            padding: 36px 24px 28px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            position: relative;
+        }
+
+        .big-char {
+            font-size: 10rem;
+            line-height: 1.1;
+            color: #2d3436;
+            font-weight: 900;
+            margin: 10px 0;
+            text-shadow: 4px 4px 0 rgba(0,0,0,.06);
+            user-select: none;
+            animation: charPop .6s cubic-bezier(.17,.67,.35,1.5);
+        }
+        @keyframes charPop {
+            0%   { transform: scale(.3) rotate(-8deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .big-pinyin {
+            font-size: 1.8rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin: 8px 0;
+        }
+        .big-meaning {
+            font-size: 1.2rem;
+            color: #636e72;
+        }
+        .big-example {
+            font-size: 1.05rem;
+            color: #b2bec3;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* 记忆等级指示器 */
+        .memory-level {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .memory-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dfe6e9;
+            transition: background .3s;
+        }
+        .memory-dot.active {
+            background: #00b894;
+        }
+        .memory-dot.wrong {
+            background: #ff7675;
+        }
+        .memory-label {
+            font-size: .75rem;
+            color: #b2bec3;
+            margin-left: 6px;
+        }
+
+        .learn-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .learn-actions .btn {
+            flex: 1;
+        }
+
+        /* 进度条 */
+        .progress {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,.25);
+            border-radius: 6px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894, #55efc4);
+            border-radius: 6px;
+            transition: width .5s ease;
+        }
+        .progress-text {
+            font-size: .75rem;
+            color: rgba(255,255,255,.8);
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* ===== 通用按钮 ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active { transform: scale(.95); }
+        .btn-primary { background: linear-gradient(135deg, #00b894, #00cec9); box-shadow: 0 4px 15px rgba(0,184,148,.4); }
+        .btn-orange { background: linear-gradient(135deg, #fdcb6e, #e17055); box-shadow: 0 4px 15px rgba(225,112,85,.4); }
+        .btn-purple { background: linear-gradient(135deg, #a29bfe, #6c5ce7); box-shadow: 0 4px 15px rgba(108,92,231,.4); }
+        .btn-pink   { background: linear-gradient(135deg, #fd79a8, #e84393); box-shadow: 0 4px 15px rgba(232,67,147,.4); }
+        .btn-blue   { background: linear-gradient(135deg, #74b9ff, #0984e3); box-shadow: 0 4px 15px rgba(9,132,227,.4); }
+        .btn-ghost {
+            background: rgba(255,255,255,.15);
+            box-shadow: none;
+            font-size: .9rem;
+            padding: 10px 18px;
+        }
+        .btn-full { width: 100%; }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .btn-row .btn { flex: 1; }
+
+        /* ===== 结果页 ===== */
+        .result-card {
+            background: #fff;
+            border-radius: 28px;
+            padding: 40px 24px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+        }
+        .result-emoji {
+            font-size: 5rem;
+            animation: bounce 1s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%,100% { transform: translateY(0); }
+            50%     { transform: translateY(-16px); }
+        }
+        .result-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 12px 0;
+        }
+        .result-stars {
+            font-size: 2.5rem;
+            margin: 10px 0;
+        }
+        .result-stats {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            margin: 20px 0;
+        }
+        .result-stat-item { text-align: center; }
+        .result-stat-num { font-size: 2rem; font-weight: 800; color: var(--purple); }
+        .result-stat-label { font-size: .8rem; color: #999; }
+
+        .result-detail {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+        .result-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: .95rem;
+            color: #636e72;
+        }
+        .result-detail-row .val { font-weight: 700; }
+        .result-detail-row .val.green { color: #00b894; }
+        .result-detail-row .val.orange { color: #e17055; }
+
+        /* ===== 星星雨 ===== */
+        .stars-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .star-particle {
+            position: absolute;
+            font-size: 2rem;
+            animation: starFall 1.5s ease-in forwards;
+        }
+        @keyframes starFall {
+            0%   { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+            100% { opacity: 0; transform: translateY(120vh) rotate(720deg) scale(.3); }
+        }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(.8);
+            background: rgba(0,0,0,.8);
+            color: #fff;
+            padding: 20px 40px;
+            border-radius: 16px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all .3s;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* ===== 正确/错误反馈动画 ===== */
+        @keyframes correctPulse {
+            0%,100% { transform: scale(1); }
+            50%     { transform: scale(1.08); }
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%     { transform: translateX(-8px); }
+            40%     { transform: translateX(8px); }
+            60%     { transform: translateX(-5px); }
+            80%     { transform: translateX(5px); }
+        }
+        .feedback-correct {
+            animation: correctPulse .5s;
+        }
+        .feedback-wrong {
+            animation: shake .4s;
+        }
+        .feedback-msg {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            min-height: 36px;
+            margin-top: 12px;
+            transition: opacity .3s;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 360px) {
+            .big-char { font-size: 7rem; }
+        }
+        @media (min-width: 768px) {
+            .app { padding-top: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <div class="rainbow-bar"></div>
+
+    <!-- ========== 首页 ========== -->
+    <div id="page-home" class="page active">
+        <div class="home-header">
+            <div class="home-title">快乐识字乐园</div>
+            <div class="home-subtitle">每天学一点，轻松识千字</div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-num" id="s-learned">0</div>
+                <div class="stat-label">已学汉字</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="s-mastered">0</div>
+                <div class="stat-label">已掌握</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="s-streak">0</div>
+                <div class="stat-label">连续天数</div>
+            </div>
+        </div>
+
+        <div class="queue-info">
+            <div class="queue-item">
+                <div class="num" id="s-review-count">0</div>
+                <div class="label">待复习</div>
+            </div>
+            <div class="queue-divider"></div>
+            <div class="queue-item">
+                <div class="num" id="s-new-count">0</div>
+                <div class="label">可学新字</div>
+            </div>
+        </div>
+
+        <button class="start-btn" onclick="startLearning()">
+            开始学习
+            <span class="sub" id="start-sub">新字 + 复习，智能安排</span>
+        </button>
+
+        <div style="text-align:center;margin-top:20px;">
+            <button class="btn btn-ghost" onclick="resetProgress()" style="color:rgba(255,255,255,.5);font-size:.8rem;">重置学习进度</button>
+        </div>
+    </div>
+
+    <!-- ========== 学习页 ========== -->
+    <div id="page-learn" class="page">
+        <div class="page-title">快乐识字</div>
+        <div class="progress"><div class="progress-bar" id="learn-prog"></div></div>
+        <div class="progress-text" id="learn-prog-text">1 / 10</div>
+
+        <div style="text-align:center;">
+            <span class="char-type-tag tag-new" id="learn-tag">新字</span>
+        </div>
+
+        <div class="learn-card" id="learn-card">
+            <div class="big-char" id="l-char">字</div>
+            <div class="big-pinyin" id="l-pinyin">zì</div>
+            <div class="big-meaning" id="l-meaning">汉字、文字</div>
+            <div class="big-example" id="l-example">"我们学习了很多新汉字"</div>
+        </div>
+
+        <div class="learn-actions">
+            <button class="btn btn-blue" onclick="speakChar()">发音</button>
+            <button class="btn btn-orange" onclick="speakExample()">例句</button>
+        </div>
+
+        <div class="feedback-msg" id="learn-feedback"></div>
+
+        <div class="btn-row">
+            <button class="btn btn-primary" id="btn-no" onclick="learnMark(false)">不认识</button>
+            <button class="btn btn-purple" id="btn-yes" onclick="learnMark(true)">认识</button>
+        </div>
+
+        <div style="text-align:center;margin-top:16px;">
+            <button class="btn btn-ghost" onclick="goHome()">返回首页</button>
+        </div>
+    </div>
+
+    <!-- ========== 结果页 ========== -->
+    <div id="page-result" class="page">
+        <div class="result-card">
+            <div class="result-emoji" id="r-emoji">🎉</div>
+            <div class="result-title" id="r-title">太棒了！</div>
+            <div class="result-stars" id="r-stars"></div>
+            <div class="result-stats">
+                <div class="result-stat-item">
+                    <div class="result-stat-num" id="r-correct">0</div>
+                    <div class="result-stat-label">答对</div>
+                </div>
+                <div class="result-stat-item">
+                    <div class="result-stat-num" id="r-total">0</div>
+                    <div class="result-stat-label">总数</div>
+                </div>
+                <div class="result-stat-item">
+                    <div class="result-stat-num" id="r-accuracy">0%</div>
+                    <div class="result-stat-label">正确率</div>
+                </div>
+            </div>
+            <div class="result-detail" id="r-detail"></div>
+        </div>
+
+        <div class="btn-row" style="margin-top:20px;">
+            <button class="btn btn-primary" onclick="startLearning()">继续学习</button>
+            <button class="btn btn-purple" onclick="goHome()">返回首页</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+</div>
+
+<!-- 星星雨容器 -->
+<div class="stars-rain" id="stars-rain"></div>
+
+<script>
+// ============================================================
+//  汉字数据库 —— 按使用频率排列，level 1/2/3 = 适合 5 岁的难度
+// ============================================================
+const DB = [
+// ---- Level 1: 最基础、5 岁入门（~200 字）----
+{c:'一',p:'yī',m:'数字 1',e:'一个苹果',lv:1},
+{c:'二',p:'èr',m:'数字 2',e:'二只猫',lv:1},
+{c:'三',p:'sān',m:'数字 3',e:'三个朋友',lv:1},
+{c:'四',p:'sì',m:'数字 4',e:'四季',lv:1},
+{c:'五',p:'wǔ',m:'数字 5',e:'五月',lv:1},
+{c:'六',p:'liù',m:'数字 6',e:'六一节',lv:1},
+{c:'七',p:'qī',m:'数字 7',e:'七天',lv:1},
+{c:'八',p:'bā',m:'数字 8',e:'八月',lv:1},
+{c:'九',p:'jiǔ',m:'数字 9',e:'九点',lv:1},
+{c:'十',p:'shí',m:'数字 10',e:'十个',lv:1},
+{c:'百',p:'bǎi',m:'一百',e:'一百个',lv:1},
+{c:'千',p:'qiān',m:'一千',e:'一千元',lv:1},
+{c:'万',p:'wàn',m:'一万',e:'一万步',lv:2},
+{c:'大',p:'dà',m:'大小',e:'大象',lv:1},
+{c:'小',p:'xiǎo',m:'大小',e:'小鸟',lv:1},
+{c:'多',p:'duō',m:'很多',e:'很多花',lv:1},
+{c:'少',p:'shǎo',m:'很少',e:'少量',lv:1},
+{c:'上',p:'shàng',m:'上面',e:'上山',lv:1},
+{c:'下',p:'xià',m:'下面',e:'下雨',lv:1},
+{c:'左',p:'zuǒ',m:'左边',e:'左手',lv:1},
+{c:'右',p:'yòu',m:'右边',e:'右手',lv:1},
+{c:'前',p:'qián',m:'前面',e:'前面有人',lv:1},
+{c:'后',p:'hòu',m:'后面',e:'后来',lv:1},
+{c:'里',p:'lǐ',m:'里面',e:'家里',lv:1},
+{c:'外',p:'wài',m:'外面',e:'外面',lv:1},
+{c:'中',p:'zhōng',m:'中间',e:'中午',lv:1},
+{c:'人',p:'rén',m:'人们',e:'大人小孩',lv:1},
+{c:'口',p:'kǒu',m:'嘴巴',e:'人口',lv:1},
+{c:'手',p:'shǒu',m:'手掌',e:'大手',lv:1},
+{c:'足',p:'zú',m:'脚',e:'足球',lv:1},
+{c:'目',p:'mù',m:'眼睛',e:'目光',lv:1},
+{c:'耳',p:'ěr',m:'耳朵',e:'木耳',lv:1},
+{c:'头',p:'tóu',m:'脑袋',e:'头发',lv:1},
+{c:'心',p:'xīn',m:'心脏',e:'开心',lv:1},
+{c:'牙',p:'yá',m:'牙齿',e:'刷牙',lv:1},
+{c:'舌',p:'shé',m:'舌头',e:'舌尖',lv:2},
+{c:'天',p:'tiān',m:'天空',e:'今天天气好',lv:1},
+{c:'地',p:'dì',m:'大地',e:'地上',lv:1},
+{c:'日',p:'rì',m:'太阳/日子',e:'生日',lv:1},
+{c:'月',p:'yuè',m:'月亮/月份',e:'月亮',lv:1},
+{c:'星',p:'xīng',m:'星星',e:'星星',lv:1},
+{c:'风',p:'fēng',m:'空气流动',e:'大风',lv:1},
+{c:'云',p:'yún',m:'云朵',e:'白云',lv:1},
+{c:'雨',p:'yǔ',m:'雨水',e:'下雨了',lv:1},
+{c:'雪',p:'xuě',m:'雪花',e:'下雪了',lv:1},
+{c:'电',p:'diàn',m:'电力',e:'电话',lv:1},
+{c:'雷',p:'léi',m:'打雷',e:'打雷了',lv:2},
+{c:'水',p:'shuǐ',m:'水',e:'喝水',lv:1},
+{c:'火',p:'huǒ',m:'火焰',e:'大火',lv:1},
+{c:'山',p:'shān',m:'山脉',e:'高山',lv:1},
+{c:'石',p:'shí',m:'石头',e:'石头',lv:1},
+{c:'土',p:'tǔ',m:'泥土',e:'土地',lv:1},
+{c:'花',p:'huā',m:'花朵',e:'开花了',lv:1},
+{c:'草',p:'cǎo',m:'青草',e:'草地',lv:1},
+{c:'树',p:'shù',m:'树木',e:'大树',lv:1},
+{c:'叶',p:'yè',m:'树叶',e:'绿叶',lv:1},
+{c:'木',p:'mù',m:'木头',e:'木头',lv:1},
+{c:'竹',p:'zhú',m:'竹子',e:'竹林',lv:2},
+{c:'田',p:'tián',m:'田地',e:'田野',lv:1},
+{c:'河',p:'hé',m:'河流',e:'小河',lv:1},
+{c:'海',p:'hǎi',m:'大海',e:'海边',lv:1},
+{c:'湖',p:'hú',m:'湖泊',e:'湖水',lv:2},
+{c:'鸟',p:'niǎo',m:'飞禽',e:'小鸟',lv:1},
+{c:'鱼',p:'yú',m:'鱼类',e:'小鱼',lv:1},
+{c:'虫',p:'chóng',m:'昆虫',e:'虫子',lv:1},
+{c:'马',p:'mǎ',m:'马',e:'小马',lv:1},
+{c:'牛',p:'niú',m:'牛',e:'牛奶',lv:1},
+{c:'羊',p:'yáng',m:'羊',e:'山羊',lv:1},
+{c:'猪',p:'zhū',m:'猪',e:'小猪',lv:1},
+{c:'狗',p:'gǒu',m:'狗',e:'小狗',lv:1},
+{c:'猫',p:'māo',m:'猫',e:'小猫',lv:1},
+{c:'鸡',p:'jī',m:'鸡',e:'小鸡',lv:1},
+{c:'鸭',p:'yā',m:'鸭子',e:'鸭子',lv:1},
+{c:'兔',p:'tù',m:'兔子',e:'小白兔',lv:1},
+{c:'龙',p:'lóng',m:'龙',e:'恐龙',lv:1},
+{c:'爸',p:'bà',m:'父亲',e:'爸爸',lv:1},
+{c:'妈',p:'mā',m:'母亲',e:'妈妈',lv:1},
+{c:'哥',p:'gē',m:'哥哥',e:'大哥',lv:1},
+{c:'弟',p:'dì',m:'弟弟',e:'弟弟',lv:1},
+{c:'姐',p:'jiě',m:'姐姐',e:'姐姐',lv:1},
+{c:'妹',p:'mèi',m:'妹妹',e:'妹妹',lv:1},
+{c:'爷',p:'yé',m:'爷爷',e:'爷爷',lv:1},
+{c:'奶',p:'nǎi',m:'奶奶',e:'牛奶',lv:1},
+{c:'我',p:'wǒ',m:'我',e:'我是学生',lv:1},
+{c:'你',p:'nǐ',m:'你',e:'你好',lv:1},
+{c:'他',p:'tā',m:'他',e:'他们',lv:1},
+{c:'她',p:'tā',m:'她',e:'她们',lv:1},
+{c:'们',p:'men',m:'复数',e:'我们',lv:1},
+{c:'的',p:'de',m:'助词',e:'我的',lv:1},
+{c:'是',p:'shì',m:'是',e:'是的',lv:1},
+{c:'不',p:'bù',m:'不',e:'不是',lv:1},
+{c:'了',p:'le',m:'助词',e:'好了',lv:1},
+{c:'在',p:'zài',m:'在',e:'在家',lv:1},
+{c:'有',p:'yǒu',m:'有',e:'有花',lv:1},
+{c:'来',p:'lái',m:'来',e:'来吧',lv:1},
+{c:'去',p:'qù',m:'去',e:'去吧',lv:1},
+{c:'说',p:'shuō',m:'说话',e:'说话',lv:1},
+{c:'看',p:'kàn',m:'看见',e:'看书',lv:1},
+{c:'听',p:'tīng',m:'听见',e:'听话',lv:1},
+{c:'走',p:'zǒu',m:'步行',e:'走路',lv:1},
+{c:'跑',p:'pǎo',m:'奔跑',e:'跑步',lv:1},
+{c:'飞',p:'fēi',m:'飞翔',e:'飞机',lv:1},
+{c:'吃',p:'chī',m:'进食',e:'吃饭',lv:1},
+{c:'喝',p:'hē',m:'饮',e:'喝水',lv:1},
+{c:'睡',p:'shuì',m:'睡觉',e:'早睡早起',lv:1},
+{c:'起',p:'qǐ',m:'起来',e:'起床',lv:1},
+{c:'做',p:'zuò',m:'做',e:'做事',lv:1},
+{c:'打',p:'dǎ',m:'打',e:'打球',lv:1},
+{c:'开',p:'kāi',m:'打开',e:'开门',lv:1},
+{c:'关',p:'guān',m:'关闭',e:'关灯',lv:1},
+{c:'买',p:'mǎi',m:'购买',e:'买菜',lv:1},
+{c:'给',p:'gěi',m:'给予',e:'给你',lv:1},
+{c:'拿',p:'ná',m:'拿着',e:'拿来',lv:1},
+{c:'放',p:'fàng',m:'放置',e:'放下',lv:1},
+{c:'好',p:'hǎo',m:'好',e:'好人',lv:1},
+{c:'对',p:'duì',m:'正确',e:'对的',lv:1},
+{c:'错',p:'cuò',m:'错误',e:'错了',lv:1},
+{c:'新',p:'xīn',m:'新的',e:'新年',lv:1},
+{c:'老',p:'lǎo',m:'老的',e:'老师',lv:1},
+{c:'快',p:'kuài',m:'快',e:'快乐',lv:1},
+{c:'慢',p:'màn',m:'慢',e:'慢慢走',lv:1},
+{c:'高',p:'gāo',m:'高',e:'高兴',lv:1},
+{c:'长',p:'cháng',m:'长',e:'长城',lv:1},
+{c:'远',p:'yuǎn',m:'远',e:'远方',lv:1},
+{c:'近',p:'jìn',m:'近',e:'很近',lv:1},
+{c:'冷',p:'lěng',m:'冷',e:'冷了',lv:1},
+{c:'热',p:'rè',m:'热',e:'热水',lv:1},
+{c:'明',p:'míng',m:'明亮',e:'明天',lv:1},
+{c:'早',p:'zǎo',m:'早',e:'早上',lv:1},
+{c:'晚',p:'wǎn',m:'晚',e:'晚上',lv:1},
+{c:'年',p:'nián',m:'年',e:'过年',lv:1},
+{c:'红',p:'hóng',m:'红色',e:'红花',lv:1},
+{c:'黄',p:'huáng',m:'黄色',e:'黄花',lv:1},
+{c:'蓝',p:'lán',m:'蓝色',e:'蓝天',lv:1},
+{c:'绿',p:'lǜ',m:'绿色',e:'绿草',lv:1},
+{c:'白',p:'bái',m:'白色',e:'白云',lv:1},
+{c:'黑',p:'hēi',m:'黑色',e:'黑夜',lv:1},
+{c:'金',p:'jīn',m:'金色',e:'金色',lv:1},
+{c:'学',p:'xué',m:'学习',e:'学习',lv:1},
+{c:'教',p:'jiāo',m:'教导',e:'教书',lv:1},
+{c:'问',p:'wèn',m:'问',e:'问题',lv:1},
+{c:'答',p:'dá',m:'回答',e:'回答',lv:1},
+{c:'想',p:'xiǎng',m:'想',e:'想妈妈',lv:1},
+{c:'知',p:'zhī',m:'知道',e:'知道',lv:1},
+{c:'记',p:'jì',m:'记住',e:'记住',lv:1},
+{c:'爱',p:'ài',m:'喜爱',e:'我爱妈妈',lv:1},
+{c:'笑',p:'xiào',m:'笑',e:'笑笑',lv:1},
+{c:'哭',p:'kū',m:'哭',e:'哭了',lv:1},
+{c:'唱',p:'chàng',m:'唱歌',e:'唱歌',lv:1},
+{c:'跳',p:'tiào',m:'跳',e:'跳舞',lv:1},
+{c:'画',p:'huà',m:'画画',e:'画画',lv:1},
+{c:'读',p:'dú',m:'读书',e:'读故事',lv:1},
+{c:'写',p:'xiě',m:'写',e:'写字',lv:1},
+{c:'玩',p:'wán',m:'玩',e:'玩球',lv:1},
+{c:'家',p:'jiā',m:'家庭',e:'回家',lv:1},
+{c:'校',p:'xiào',m:'学校',e:'学校',lv:1},
+{c:'师',p:'shī',m:'老师',e:'老师',lv:1},
+{c:'生',p:'shēng',m:'学生',e:'学生',lv:1},
+{c:'同',p:'tóng',m:'同学',e:'同学',lv:1},
+{c:'友',p:'yǒu',m:'朋友',e:'朋友',lv:1},
+{c:'国',p:'guó',m:'国家',e:'中国',lv:1},
+{c:'车',p:'chē',m:'车',e:'汽车',lv:1},
+{c:'门',p:'mén',m:'门',e:'开门',lv:1},
+{c:'书',p:'shū',m:'书',e:'看书',lv:1},
+{c:'笔',p:'bǐ',m:'笔',e:'铅笔',lv:1},
+{c:'纸',p:'zhǐ',m:'纸',e:'纸',lv:1},
+{c:'包',p:'bāo',m:'书包',e:'书包',lv:1},
+{c:'衣',p:'yī',m:'衣服',e:'衣服',lv:1},
+{c:'鞋',p:'xié',m:'鞋子',e:'鞋子',lv:1},
+{c:'床',p:'chuáng',m:'床',e:'睡觉',lv:1},
+{c:'桌',p:'zhuō',m:'桌子',e:'桌子',lv:1},
+{c:'灯',p:'dēng',m:'灯',e:'电灯',lv:1},
+{c:'米',p:'mǐ',m:'米',e:'米饭',lv:1},
+{c:'面',p:'miàn',m:'面条',e:'面条',lv:1},
+{c:'肉',p:'ròu',m:'肉',e:'吃肉',lv:1},
+{c:'蛋',p:'dàn',m:'蛋',e:'鸡蛋',lv:1},
+{c:'菜',p:'cài',m:'蔬菜',e:'青菜',lv:1},
+{c:'果',p:'guǒ',m:'水果',e:'水果',lv:1},
+{c:'糖',p:'táng',m:'糖果',e:'糖果',lv:1},
+{c:'瓜',p:'guā',m:'瓜',e:'西瓜',lv:1},
+{c:'苹',p:'píng',m:'苹果',e:'苹果',lv:1},
+{c:'桃',p:'táo',m:'桃子',e:'桃子',lv:1},
+{c:'豆',p:'dòu',m:'豆子',e:'豆子',lv:1},
+{c:'路',p:'lù',m:'路',e:'走路',lv:1},
+{c:'船',p:'chuán',m:'船',e:'小船',lv:1},
+{c:'今',p:'jīn',m:'今天',e:'今天',lv:1},
+{c:'昨',p:'zuó',m:'昨天',e:'昨天',lv:1},
+{c:'春',p:'chūn',m:'春天',e:'春天',lv:1},
+{c:'夏',p:'xià',m:'夏天',e:'夏天',lv:1},
+{c:'秋',p:'qiū',m:'秋天',e:'秋天',lv:1},
+{c:'冬',p:'dōng',m:'冬天',e:'冬天',lv:1},
+{c:'东',p:'dōng',m:'东方',e:'东西',lv:1},
+{c:'西',p:'xī',m:'西方',e:'东西',lv:1},
+{c:'南',p:'nán',m:'南方',e:'南方',lv:1},
+{c:'北',p:'běi',m:'北方',e:'北京',lv:1},
+{c:'甜',p:'tián',m:'甜',e:'甜甜的',lv:1},
+{c:'酸',p:'suān',m:'酸',e:'酸酸',lv:1},
+{c:'苦',p:'kǔ',m:'苦',e:'苦瓜',lv:2},
+{c:'辣',p:'là',m:'辣',e:'辣椒',lv:2},
+{c:'香',p:'xiāng',m:'香',e:'好香',lv:1},
+{c:'叫',p:'jiào',m:'叫',e:'叫人',lv:1},
+{c:'找',p:'zhǎo',m:'找',e:'找人',lv:1},
+{c:'抱',p:'bào',m:'抱',e:'抱抱',lv:1},
+{c:'拉',p:'lā',m:'拉',e:'拉手',lv:1},
+{c:'踢',p:'tī',m:'踢',e:'踢球',lv:1},
+{c:'推',p:'tuī',m:'推',e:'推门',lv:2},
+{c:'进',p:'jìn',m:'进',e:'进去',lv:1},
+{c:'出',p:'chū',m:'出',e:'出去',lv:1},
+{c:'送',p:'sòng',m:'送',e:'送花',lv:1},
+{c:'站',p:'zhàn',m:'站',e:'站起来',lv:1},
+{c:'坐',p:'zuò',m:'坐',e:'坐下',lv:1},
+{c:'病',p:'bìng',m:'生病',e:'生病',lv:1},
+{c:'医',p:'yī',m:'医生',e:'医生',lv:1},
+{c:'院',p:'yuàn',m:'医院',e:'医院',lv:2},
+{c:'药',p:'yào',m:'药',e:'吃药',lv:1},
+{c:'胖',p:'pàng',m:'胖',e:'胖胖的',lv:1},
+{c:'瘦',p:'shòu',m:'瘦',e:'瘦的',lv:2},
+{c:'美',p:'měi',m:'美丽',e:'美丽',lv:1},
+{c:'丑',p:'chǒu',m:'丑',e:'小丑',lv:2},
+{c:'干',p:'gān',m:'干',e:'干净',lv:1},
+{c:'净',p:'jìng',m:'干净',e:'干净',lv:1},
+{c:'忙',p:'máng',m:'忙',e:'很忙',lv:2},
+{c:'怕',p:'pà',m:'害怕',e:'不怕',lv:1},
+{c:'安',p:'ān',m:'安全',e:'安全',lv:1},
+{c:'全',p:'quán',m:'全部',e:'安全',lv:1},
+{c:'死',p:'sǐ',m:'死亡',e:'不死',lv:2},
+{c:'活',p:'huó',m:'活着',e:'快活',lv:1},
+{c:'力',p:'lì',m:'力气',e:'力气大',lv:1},
+{c:'气',p:'qì',m:'空气',e:'天气',lv:1},
+{c:'王',p:'wáng',m:'国王',e:'国王',lv:1},
+{c:'主',p:'zhǔ',m:'主人',e:'公主',lv:1},
+{c:'公',p:'gōng',m:'公共',e:'公园',lv:1},
+{c:'正',p:'zhèng',m:'正确',e:'正好',lv:1},
+{c:'才',p:'cái',m:'才',e:'天才',lv:1},
+{c:'工',p:'gōng',m:'工作',e:'工作',lv:1},
+{c:'自',p:'zì',m:'自己',e:'自己',lv:1},
+{c:'已',p:'yǐ',m:'已经',e:'已经',lv:1},
+{c:'会',p:'huì',m:'会',e:'会飞',lv:1},
+{c:'能',p:'néng',m:'能',e:'能做',lv:1},
+{c:'可',p:'kě',m:'可以',e:'可以',lv:1},
+{c:'要',p:'yào',m:'要',e:'要吃',lv:1},
+{c:'没',p:'méi',m:'没有',e:'没有',lv:1},
+{c:'很',p:'hěn',m:'很',e:'很好',lv:1},
+{c:'都',p:'dōu',m:'都',e:'都有',lv:1},
+{c:'也',p:'yě',m:'也',e:'也是',lv:1},
+{c:'就',p:'jiù',m:'就',e:'就是',lv:1},
+{c:'还',p:'hái',m:'还',e:'还有',lv:1},
+{c:'把',p:'bǎ',m:'把',e:'把门',lv:1},
+{c:'被',p:'bèi',m:'被子',e:'被子',lv:1},
+{c:'这',p:'zhè',m:'这个',e:'这里',lv:1},
+{c:'那',p:'nà',m:'那个',e:'那里',lv:1},
+{c:'什',p:'shén',m:'什么',e:'什么',lv:1},
+{c:'怎',p:'zěn',m:'怎么',e:'怎样',lv:1},
+{c:'哪',p:'nǎ',m:'哪里',e:'哪个',lv:1},
+{c:'谁',p:'shuí',m:'谁',e:'是谁',lv:1},
+{c:'最',p:'zuì',m:'最',e:'最好',lv:1},
+{c:'更',p:'gèng',m:'更',e:'更好',lv:2},
+{c:'真',p:'zhēn',m:'真的',e:'真的',lv:1},
+{c:'假',p:'jiǎ',m:'假的',e:'真假',lv:2},
+{c:'只',p:'zhī',m:'只',e:'一只',lv:1},
+{c:'个',p:'gè',m:'个',e:'一个',lv:1},
+{c:'和',p:'hé',m:'和',e:'我和你',lv:1},
+{c:'与',p:'yǔ',m:'和',e:'与你',lv:2},
+{c:'种',p:'zhǒng',m:'种',e:'一种',lv:2},
+{c:'样',p:'yàng',m:'样子',e:'一样',lv:2},
+{c:'些',p:'xiē',m:'一些',e:'一些',lv:1},
+{c:'第',p:'dì',m:'第',e:'第一',lv:2},
+{c:'比',p:'bǐ',m:'比较',e:'比较',lv:2},
+{c:'如',p:'rú',m:'如果',e:'如果',lv:2},
+{c:'为',p:'wèi',m:'因为',e:'为什么',lv:2},
+{c:'从',p:'cóng',m:'从',e:'从前',lv:1},
+{c:'到',p:'dào',m:'到',e:'到了',lv:1},
+{c:'时',p:'shí',m:'时间',e:'时候',lv:1},
+{c:'间',p:'jiān',m:'中间',e:'时间',lv:1},
+{c:'点',p:'diǎn',m:'点',e:'三点',lv:1},
+{c:'分',p:'fēn',m:'分钟',e:'十分',lv:1},
+{c:'每',p:'měi',m:'每个',e:'每天',lv:1},
+{c:'钱',p:'qián',m:'钱',e:'花钱',lv:1},
+{c:'城',p:'chéng',m:'城市',e:'城市',lv:2},
+{c:'市',p:'shì',m:'市场',e:'市场',lv:2},
+{c:'江',p:'jiāng',m:'江',e:'长江',lv:2},
+{c:'林',p:'lín',m:'森林',e:'树林',lv:1},
+{c:'森',p:'sēn',m:'森林',e:'森林',lv:2},
+{c:'光',p:'guāng',m:'光',e:'阳光',lv:1},
+{c:'色',p:'sè',m:'颜色',e:'红色',lv:1},
+{c:'声',p:'shēng',m:'声音',e:'声音',lv:1},
+{c:'字',p:'zì',m:'汉字',e:'写字',lv:1},
+{c:'词',p:'cí',m:'词语',e:'词语',lv:2},
+{c:'句',p:'jù',m:'句子',e:'一句话',lv:2},
+{c:'文',p:'wén',m:'文章',e:'作文',lv:2},
+{c:'话',p:'huà',m:'话',e:'说话',lv:1},
+{c:'语',p:'yǔ',m:'语言',e:'语文',lv:2},
+{c:'歌',p:'gē',m:'歌',e:'唱歌',lv:1},
+{c:'音',p:'yīn',m:'声音',e:'音乐',lv:1},
+{c:'乐',p:'lè',m:'快乐',e:'快乐',lv:1},
+{c:'动',p:'dòng',m:'动',e:'运动',lv:1},
+{c:'兴',p:'xìng',m:'高兴',e:'高兴',lv:1},
+{c:'欢',p:'huān',m:'欢乐',e:'欢乐',lv:1},
+{c:'告',p:'gào',m:'告诉',e:'告诉',lv:1},
+{c:'诉',p:'sù',m:'告诉',e:'告诉',lv:2},
+{c:'让',p:'ràng',m:'让',e:'让座',lv:2},
+{c:'帮',p:'bāng',m:'帮忙',e:'帮忙',lv:1},
+{c:'住',p:'zhù',m:'住',e:'住家',lv:1},
+{c:'房',p:'fáng',m:'房子',e:'房子',lv:1},
+{c:'事',p:'shì',m:'事情',e:'做好事',lv:1},
+{c:'物',p:'wù',m:'东西',e:'动物',lv:1},
+{c:'图',p:'tú',m:'图画',e:'画图',lv:1},
+{c:'照',p:'zhào',m:'照片',e:'照片',lv:2},
+{c:'像',p:'xiàng',m:'像',e:'好像',lv:2},
+{c:'先',p:'xiān',m:'先',e:'先走',lv:1},
+{c:'再',p:'zài',m:'再',e:'再见',lv:1},
+{c:'然',p:'rán',m:'然后',e:'然后',lv:2},
+{c:'常',p:'cháng',m:'常常',e:'经常',lv:2},
+{c:'经',p:'jīng',m:'经过',e:'经常',lv:2},
+{c:'定',p:'dìng',m:'一定',e:'一定',lv:1},
+{c:'决',p:'jué',m:'决定',e:'决定',lv:2},
+{c:'变',p:'biàn',m:'变化',e:'变',lv:1},
+{c:'化',p:'huà',m:'变化',e:'变化',lv:2},
+{c:'行',p:'xíng',m:'行走',e:'行走',lv:1},
+{c:'成',p:'chéng',m:'完成',e:'成功',lv:2},
+{c:'重',p:'zhòng',m:'重',e:'很重',lv:1},
+{c:'轻',p:'qīng',m:'轻',e:'轻松',lv:2},
+{c:'难',p:'nán',m:'难',e:'困难',lv:2},
+{c:'简',p:'jiǎn',m:'简单',e:'简单',lv:2},
+{c:'单',p:'dān',m:'简单',e:'单位',lv:2},
+{c:'卖',p:'mài',m:'卖',e:'买卖',lv:2},
+{c:'题',p:'tí',m:'题目',e:'问题',lv:1},
+{c:'以',p:'yǐ',m:'可以',e:'可以',lv:2},
+{c:'因',p:'yīn',m:'因为',e:'因为',lv:2},
+{c:'所',p:'suǒ',m:'所以',e:'所以',lv:2},
+{c:'但',p:'dàn',m:'但是',e:'但是',lv:2},
+{c:'而',p:'ér',m:'而且',e:'而且',lv:2},
+{c:'或',p:'huò',m:'或者',e:'或者',lv:3},
+{c:'若',p:'ruò',m:'如果',e:'若是',lv:3},
+{c:'虽',p:'suī',m:'虽然',e:'虽然',lv:3},
+{c:'应',p:'yīng',m:'应该',e:'应该',lv:2},
+{c:'当',p:'dāng',m:'当然',e:'当然',lv:2},
+{c:'须',p:'xū',m:'必须',e:'必须',lv:3},
+{c:'该',p:'gāi',m:'应该',e:'应该',lv:2},
+{c:'需',p:'xū',m:'需要',e:'需要',lv:3},
+{c:'求',p:'qiú',m:'要求',e:'要求',lv:2},
+{c:'信',p:'xìn',m:'相信',e:'相信',lv:2},
+{c:'望',p:'wàng',m:'希望',e:'愿望',lv:2},
+{c:'希',p:'xī',m:'希望',e:'希望',lv:2},
+{c:'任',p:'rèn',m:'任务',e:'任务',lv:3},
+{c:'何',p:'hé',m:'如何',e:'如何',lv:3},
+{c:'其',p:'qí',m:'其中',e:'其中',lv:3},
+{c:'此',p:'cǐ',m:'此',e:'此时',lv:3},
+{c:'之',p:'zhī',m:'的',e:'之前',lv:3},
+{c:'于',p:'yú',m:'于',e:'由于',lv:3},
+{c:'将',p:'jiāng',m:'将会',e:'将来',lv:3},
+{c:'至',p:'zhì',m:'到',e:'至今',lv:3},
+{c:'得',p:'de',m:'得到',e:'得到',lv:1},
+{c:'过',p:'guò',m:'过',e:'过来',lv:1},
+{c:'着',p:'zhe',m:'助词',e:'走着',lv:1},
+{c:'呢',p:'ne',m:'助词',e:'好呢',lv:1},
+{c:'吗',p:'ma',m:'助词',e:'好吗',lv:1},
+{c:'吧',p:'ba',m:'助词',e:'好吧',lv:1},
+{c:'啊',p:'a',m:'助词',e:'好啊',lv:1},
+{c:'呀',p:'ya',m:'助词',e:'是呀',lv:1},
+{c:'味',p:'wèi',m:'味道',e:'味道好',lv:1},
+{c:'觉',p:'jué',m:'感觉',e:'觉得',lv:1},
+{c:'感',p:'gǎn',m:'感觉',e:'感觉',lv:1},
+{c:'情',p:'qíng',m:'感情',e:'心情',lv:2},
+{c:'意',p:'yì',m:'意思',e:'意思',lv:2},
+{c:'思',p:'sī',m:'思考',e:'意思',lv:2},
+{c:'念',p:'niàn',m:'想念',e:'想念',lv:2},
+{c:'忘',p:'wàng',m:'忘记',e:'忘了',lv:2},
+{c:'堂',p:'táng',m:'课堂',e:'课堂',lv:2},
+{c:'园',p:'yuán',m:'公园',e:'公园',lv:1},
+{c:'场',p:'chǎng',m:'场地',e:'操场',lv:2},
+{c:'馆',p:'guǎn',m:'馆',e:'图书馆',lv:2},
+{c:'店',p:'diàn',m:'商店',e:'书店',lv:2},
+{c:'厂',p:'chǎng',m:'工厂',e:'工厂',lv:2},
+{c:'品',p:'pǐn',m:'品质',e:'品质',lv:2},
+{c:'农',p:'nóng',m:'农民',e:'农民',lv:2},
+{c:'商',p:'shāng',m:'商人',e:'商店',lv:2},
+{c:'兵',p:'bīng',m:'士兵',e:'士兵',lv:2},
+{c:'民',p:'mín',m:'人民',e:'人民',lv:2},
+{c:'队',p:'duì',m:'队伍',e:'队员',lv:2},
+{c:'组',p:'zǔ',m:'组织',e:'小组',lv:2},
+{c:'群',p:'qún',m:'一群',e:'一群鸟',lv:2},
+{c:'众',p:'zhòng',m:'群众',e:'群众',lv:3},
+{c:'独',p:'dú',m:'独立',e:'独立',lv:3},
+{c:'亲',p:'qīn',m:'亲',e:'亲人',lv:1},
+{c:'戚',p:'qī',m:'亲戚',e:'亲戚',lv:3},
+{c:'相',p:'xiāng',m:'互相',e:'互相',lv:2},
+{c:'交',p:'jiāo',m:'交朋友',e:'交通',lv:2},
+{c:'礼',p:'lǐ',m:'礼貌',e:'礼物',lv:1},
+{c:'貌',p:'mào',m:'礼貌',e:'外貌',lv:2},
+{c:'诚',p:'chéng',m:'诚实',e:'诚实',lv:2},
+{c:'实',p:'shí',m:'诚实',e:'真实',lv:1},
+{c:'勇',p:'yǒng',m:'勇敢',e:'勇气',lv:2},
+{c:'敢',p:'gǎn',m:'勇敢',e:'敢于',lv:2},
+{c:'坚',p:'jiān',m:'坚持',e:'坚定',lv:3},
+{c:'强',p:'qiáng',m:'强大',e:'坚强',lv:2},
+{c:'弱',p:'ruò',m:'弱',e:'弱小',lv:3},
+{c:'善',p:'shàn',m:'善良',e:'善良',lv:2},
+{c:'恶',p:'è',m:'凶恶',e:'凶恶',lv:3},
+{c:'聪',p:'cōng',m:'聪明',e:'聪明',lv:2},
+{c:'智',p:'zhì',m:'智慧',e:'智力',lv:3},
+{c:'慧',p:'huì',m:'智慧',e:'智慧',lv:3},
+{c:'勤',p:'qín',m:'勤劳',e:'勤奋',lv:3},
+{c:'劳',p:'láo',m:'劳动',e:'劳动',lv:2},
+{c:'优',p:'yōu',m:'优秀',e:'优秀',lv:2},
+{c:'秀',p:'xiù',m:'优秀',e:'优秀',lv:2},
+{c:'奇',p:'qí',m:'奇怪',e:'好奇',lv:2},
+{c:'妙',p:'miào',m:'美妙',e:'奇妙',lv:2},
+{c:'趣',p:'qù',m:'有趣',e:'有趣',lv:2},
+{c:'精',p:'jīng',m:'精彩',e:'精神',lv:2},
+{c:'彩',p:'cǎi',m:'色彩',e:'彩虹',lv:1},
+{c:'丰',p:'fēng',m:'丰富',e:'丰富',lv:2},
+{c:'富',p:'fù',m:'富裕',e:'丰富',lv:2},
+{c:'丽',p:'lì',m:'美丽',e:'美丽',lv:1},
+{c:'壮',p:'zhuàng',m:'壮',e:'壮大',lv:3},
+{c:'观',p:'guān',m:'观看',e:'观看',lv:2},
+{c:'赏',p:'shǎng',m:'欣赏',e:'欣赏',lv:2},
+{c:'忆',p:'yì',m:'记忆',e:'回忆',lv:2},
+{c:'创',p:'chuàng',m:'创造',e:'创造',lv:3},
+{c:'造',p:'zào',m:'制造',e:'创造',lv:3},
+{c:'改',p:'gǎi',m:'改变',e:'改正',lv:2},
+{c:'升',p:'shēng',m:'上升',e:'升高',lv:2},
+{c:'降',p:'jiàng',m:'降落',e:'降落',lv:3},
+{c:'增',p:'zēng',m:'增加',e:'增加',lv:3},
+{c:'减',p:'jiǎn',m:'减少',e:'减少',lv:2},
+{c:'通',p:'tōng',m:'通过',e:'通过',lv:2},
+{c:'达',p:'dá',m:'到达',e:'到达',lv:3},
+{c:'退',p:'tuì',m:'后退',e:'退后',lv:3},
+{c:'返',p:'fǎn',m:'返回',e:'返回',lv:3},
+{c:'回',p:'huí',m:'回来',e:'回家',lv:1},
+{c:'迎',p:'yíng',m:'迎接',e:'欢迎',lv:2},
+{c:'接',p:'jiē',m:'接',e:'接送',lv:2},
+{c:'获',p:'huò',m:'获得',e:'获得',lv:3},
+{c:'取',p:'qǔ',m:'取得',e:'取得',lv:2},
+{c:'带',p:'dài',m:'带着',e:'带走',lv:1},
+{c:'跟',p:'gēn',m:'跟着',e:'跟着',lv:1},
+{c:'随',p:'suí',m:'跟随',e:'随从',lv:3},
+{c:'离',p:'lí',m:'离开',e:'离开',lv:2},
+{c:'聚',p:'jù',m:'聚集',e:'聚会',lv:3},
+{c:'散',p:'sàn',m:'散开',e:'散步',lv:2},
+{c:'碰',p:'pèng',m:'碰',e:'碰面',lv:2},
+{c:'遇',p:'yù',m:'遇见',e:'遇到',lv:3},
+{c:'见',p:'jiàn',m:'看见',e:'再见',lv:1},
+{c:'识',p:'shí',m:'认识',e:'知识',lv:1},
+{c:'别',p:'bié',m:'分别',e:'别人',lv:1},
+{c:'留',p:'liú',m:'留下',e:'停留',lv:2},
+{c:'停',p:'tíng',m:'停止',e:'停车',lv:1},
+{c:'等',p:'děng',m:'等',e:'等等',lv:1},
+{c:'急',p:'jí',m:'着急',e:'着急',lv:2},
+{c:'稳',p:'wěn',m:'稳定',e:'平稳',lv:3},
+{c:'整',p:'zhěng',m:'整齐',e:'整齐',lv:2},
+{c:'齐',p:'qí',m:'整齐',e:'一起',lv:1},
+{c:'乱',p:'luàn',m:'乱',e:'别乱',lv:2},
+{c:'杂',p:'zá',m:'杂乱',e:'杂志',lv:3},
+{c:'清',p:'qīng',m:'清楚',e:'清楚',lv:1},
+{c:'楚',p:'chǔ',m:'清楚',e:'清楚',lv:2},
+{c:'模',p:'mó',m:'模糊',e:'模糊',lv:3},
+{c:'糊',p:'hú',m:'模糊',e:'模糊',lv:3},
+{c:'粗',p:'cū',m:'粗',e:'粗心',lv:2},
+{c:'细',p:'xì',m:'细',e:'细心',lv:2},
+{c:'深',p:'shēn',m:'深',e:'深水',lv:2},
+{c:'浅',p:'qiǎn',m:'浅',e:'浅色',lv:2},
+{c:'宽',p:'kuān',m:'宽',e:'宽大',lv:2},
+{c:'窄',p:'zhǎi',m:'窄',e:'窄小',lv:3},
+{c:'厚',p:'hòu',m:'厚',e:'厚书',lv:2},
+{c:'薄',p:'bó',m:'薄',e:'薄纸',lv:3},
+{c:'满',p:'mǎn',m:'满',e:'满了',lv:1},
+{c:'空',p:'kōng',m:'空',e:'天空',lv:1},
+{c:'肥',p:'féi',m:'肥',e:'减肥',lv:2},
+{c:'圆',p:'yuán',m:'圆形',e:'圆月',lv:2},
+{c:'方',p:'fāng',m:'方形',e:'方向',lv:1},
+{c:'尖',p:'jiān',m:'尖',e:'尖角',lv:2},
+{c:'平',p:'píng',m:'平坦',e:'平安',lv:1},
+{c:'直',p:'zhí',m:'笔直',e:'直接',lv:2},
+{c:'弯',p:'wān',m:'弯曲',e:'弯月',lv:2},
+{c:'曲',p:'qǔ',m:'弯曲',e:'歌曲',lv:2},
+{c:'折',p:'zhé',m:'折',e:'折纸',lv:2},
+{c:'断',p:'duàn',m:'折断',e:'断了',lv:2},
+{c:'连',p:'lián',m:'连接',e:'连着',lv:2},
+{c:'续',p:'xù',m:'继续',e:'继续',lv:3},
+{c:'围',p:'wéi',m:'包围',e:'围着',lv:2},
+{c:'圈',p:'quān',m:'圈',e:'画圈',lv:1},
+{c:'桥',p:'qiáo',m:'桥',e:'桥上',lv:2},
+{c:'楼',p:'lóu',m:'楼',e:'高楼',lv:2},
+{c:'层',p:'céng',m:'层',e:'上层',lv:2},
+{c:'窗',p:'chuāng',m:'窗户',e:'窗户',lv:1},
+{c:'墙',p:'qiáng',m:'墙',e:'墙壁',lv:2},
+{c:'盖',p:'gài',m:'盖',e:'盖子',lv:2},
+{c:'顶',p:'dǐng',m:'顶部',e:'屋顶',lv:2},
+{c:'底',p:'dǐ',m:'底部',e:'到底',lv:2},
+{c:'背',p:'bēi',m:'背',e:'背后',lv:1},
+{c:'影',p:'yǐng',m:'影子',e:'电影',lv:2},
+{c:'响',p:'xiǎng',m:'响',e:'响亮',lv:2},
+{c:'静',p:'jìng',m:'安静',e:'安静',lv:2},
+{c:'吵',p:'chǎo',m:'吵',e:'别吵',lv:1},
+{c:'闹',p:'nào',m:'闹',e:'热闹',lv:2},
+{c:'喜',p:'xǐ',m:'喜欢',e:'欢喜',lv:1},
+{c:'怒',p:'nù',m:'生气',e:'发怒',lv:3},
+{c:'悲',p:'bēi',m:'悲伤',e:'悲痛',lv:3},
+{c:'惊',p:'jīng',m:'惊讶',e:'吃惊',lv:2},
+{c:'孤',p:'gū',m:'孤独',e:'孤独',lv:3},
+{c:'双',p:'shuāng',m:'一双',e:'双手',lv:1},
+{c:'块',p:'kuài',m:'一块',e:'一块',lv:1},
+{c:'条',p:'tiáo',m:'一条',e:'一条河',lv:1},
+{c:'件',p:'jiàn',m:'一件',e:'一件衣服',lv:1},
+{c:'本',p:'běn',m:'一本',e:'一本书',lv:1},
+{c:'张',p:'zhāng',m:'一张',e:'一张纸',lv:1},
+{c:'杯',p:'bēi',m:'杯子',e:'一杯水',lv:1},
+{c:'瓶',p:'píng',m:'瓶子',e:'一瓶水',lv:1},
+{c:'碗',p:'wǎn',m:'碗',e:'一碗饭',lv:1},
+{c:'盘',p:'pán',m:'盘子',e:'一盘菜',lv:2},
+{c:'锅',p:'guō',m:'锅',e:'一口锅',lv:2},
+{c:'勺',p:'sháo',m:'勺子',e:'一勺',lv:2},
+{c:'刀',p:'dāo',m:'刀',e:'小刀',lv:1},
+{c:'叉',p:'chā',m:'叉子',e:'刀叉',lv:2},
+{c:'筷',p:'kuài',m:'筷子',e:'筷子',lv:1},
+{c:'旗',p:'qí',m:'旗帜',e:'红旗',lv:1},
+{c:'钟',p:'zhōng',m:'时钟',e:'闹钟',lv:1},
+{c:'表',p:'biǎo',m:'手表',e:'手表',lv:1},
+{c:'镜',p:'jìng',m:'镜子',e:'镜子',lv:2},
+{c:'伞',p:'sǎn',m:'伞',e:'雨伞',lv:1},
+{c:'帽',p:'mào',m:'帽子',e:'草帽',lv:1},
+{c:'裤',p:'kù',m:'裤子',e:'裤子',lv:1},
+{c:'裙',p:'qún',m:'裙子',e:'花裙',lv:1},
+{c:'袜',p:'wà',m:'袜子',e:'袜子',lv:1},
+{c:'短',p:'duǎn',m:'短的',e:'短裤',lv:1},
+{c:'暖',p:'nuǎn',m:'温暖',e:'暖和',lv:1},
+{c:'凉',p:'liáng',m:'凉',e:'凉爽',lv:1},
+{c:'温',p:'wēn',m:'温度',e:'温暖',lv:1},
+{c:'饱',p:'bǎo',m:'吃饱',e:'吃饱',lv:1},
+{c:'饿',p:'è',m:'饿了',e:'饿了',lv:1},
+{c:'累',p:'lèi',m:'累了',e:'累了',lv:1},
+{c:'困',p:'kùn',m:'困了',e:'困了',lv:1},
+{c:'脏',p:'zāng',m:'脏',e:'脏了',lv:1},
+{c:'鲜',p:'xiān',m:'新鲜',e:'新鲜',lv:2},
+{c:'烂',p:'làn',m:'烂',e:'烂了',lv:2},
+{c:'碎',p:'suì',m:'碎',e:'碎了',lv:2},
+{c:'破',p:'pò',m:'破',e:'破了',lv:1},
+{c:'裂',p:'liè',m:'裂',e:'裂开',lv:3},
+{c:'完',p:'wán',m:'完成',e:'完了',lv:1},
+{c:'坏',p:'huài',m:'坏了',e:'坏了',lv:1},
+{c:'旧',p:'jiù',m:'旧',e:'旧的',lv:2},
+{c:'贵',p:'guì',m:'贵',e:'贵的',lv:2},
+{c:'便宜',p:'pián yi',m:'便宜',e:'便宜',lv:2},
+{c:'矮',p:'ǎi',m:'矮',e:'矮子',lv:2},
+{c:'懒',p:'lǎn',m:'懒惰',e:'懒',lv:2},
+{c:'巧',p:'qiǎo',m:'巧妙',e:'巧妙',lv:2},
+{c:'笨',p:'bèn',m:'笨',e:'笨蛋',lv:2},
+{c:'乖',p:'guāi',m:'乖巧',e:'乖',lv:1},
+{c:'淘',p:'táo',m:'淘气',e:'淘气',lv:2},
+{c:'皮',p:'pí',m:'调皮',e:'调皮',lv:1},
+{c:'调',p:'diào',m:'调皮',e:'调皮',lv:2},
+{c:'骄',p:'jiāo',m:'骄傲',e:'骄傲',lv:3},
+{c:'傲',p:'ào',m:'骄傲',e:'骄傲',lv:3},
+{c:'谦',p:'qiān',m:'谦虚',e:'谦虚',lv:3},
+{c:'虚',p:'xū',m:'虚心',e:'虚心',lv:3},
+{c:'认',p:'rèn',m:'认真',e:'认真',lv:1},
+{c:'严',p:'yán',m:'严格',e:'严格',lv:3},
+{c:'格',p:'gé',m:'严格',e:'严格',lv:3},
+{c:'松',p:'sōng',m:'放松',e:'轻松',lv:2},
+{c:'紧',p:'jǐn',m:'紧张',e:'抓紧',lv:2},
+{c:'容',p:'róng',m:'容易',e:'容易',lv:2},
+{c:'易',p:'yì',m:'容易',e:'容易',lv:2},
+{c:'复',p:'fù',m:'复杂',e:'复习',lv:3},
+{c:'普',p:'pǔ',m:'普通',e:'普通',lv:3},
+{c:'特',p:'tè',m:'特别',e:'特别',lv:2},
+{c:'殊',p:'shū',m:'特殊',e:'特殊',lv:3},
+{c:'怪',p:'guài',m:'奇怪',e:'奇怪',lv:2},
+{c:'神',p:'shén',m:'精神',e:'精神',lv:2},
+{c:'仙',p:'xiān',m:'仙人',e:'仙子',lv:2},
+{c:'鬼',p:'guǐ',m:'鬼',e:'小鬼',lv:2},
+{c:'梦',p:'mèng',m:'梦',e:'做梦',lv:1},
+{c:'幻',p:'huàn',m:'幻想',e:'幻想',lv:3},
+{c:'戏',p:'xì',m:'游戏',e:'游戏',lv:1},
+{c:'剧',p:'jù',m:'戏剧',e:'喜剧',lv:3},
+{c:'舞',p:'wǔ',m:'跳舞',e:'跳舞',lv:1},
+{c:'拍',p:'pāi',m:'拍',e:'拍手',lv:1},
+{c:'弹',p:'tán',m:'弹琴',e:'弹琴',lv:2},
+{c:'吹',p:'chuī',m:'吹',e:'吹风',lv:1},
+{c:'敲',p:'qiāo',m:'敲',e:'敲门',lv:2},
+{c:'击',p:'jī',m:'打',e:'攻击',lv:3},
+{c:'扫',p:'sǎo',m:'扫',e:'扫地',lv:1},
+{c:'擦',p:'cā',m:'擦',e:'擦桌子',lv:1},
+{c:'洗',p:'xǐ',m:'洗',e:'洗手',lv:1},
+{c:'刷',p:'shuā',m:'刷',e:'刷牙',lv:1},
+{c:'梳',p:'shū',m:'梳头',e:'梳子',lv:2},
+{c:'剪',p:'jiǎn',m:'剪',e:'剪纸',lv:2},
+{c:'缝',p:'féng',m:'缝',e:'缝衣',lv:3},
+{c:'织',p:'zhī',m:'编织',e:'编织',lv:3},
+{c:'编',p:'biān',m:'编',e:'编故事',lv:2},
+{c:'扎',p:'zā',m:'扎',e:'扎辫子',lv:2},
+{c:'系',p:'xì',m:'系',e:'系鞋带',lv:3},
+{c:'脱',p:'tuō',m:'脱',e:'脱鞋',lv:1},
+{c:'穿',p:'chuān',m:'穿',e:'穿衣服',lv:1},
+{c:'戴',p:'dài',m:'戴',e:'戴帽子',lv:2},
+{c:'挂',p:'guà',m:'挂',e:'挂衣服',lv:2},
+{c:'铺',p:'pū',m:'铺',e:'铺床',lv:3},
+{c:'叠',p:'dié',m:'叠',e:'叠衣服',lv:2},
+{c:'举',p:'jǔ',m:'举',e:'举手',lv:2},
+{c:'抬',p:'tái',m:'抬',e:'抬头',lv:2},
+{c:'扛',p:'káng',m:'扛',e:'扛东西',lv:2},
+{c:'捧',p:'pěng',m:'捧',e:'捧着',lv:2},
+{c:'握',p:'wò',m:'握',e:'握手',lv:2},
+{c:'抓',p:'zhuā',m:'抓',e:'抓人',lv:1},
+{c:'捏',p:'niē',m:'捏',e:'捏泥人',lv:2},
+{c:'投',p:'tóu',m:'投',e:'投篮',lv:2},
+{c:'扔',p:'rēng',m:'扔',e:'扔球',lv:1},
+{c:'捡',p:'jiǎn',m:'捡',e:'捡起来',lv:1},
+{c:'拾',p:'shí',m:'捡',e:'拾起来',lv:3},
+{c:'藏',p:'cáng',m:'藏',e:'捉迷藏',lv:1},
+{c:'丢',p:'diū',m:'丢',e:'丢了',lv:1},
+{c:'收',p:'shōu',m:'收',e:'收拾',lv:1},
+{c:'存',p:'cún',m:'保存',e:'保存',lv:2},
+{c:'摆',p:'bǎi',m:'摆',e:'摆放',lv:2},
+{c:'排',p:'pái',m:'排列',e:'排队',lv:1},
+{c:'列',p:'liè',m:'行列',e:'列车',lv:2},
+{c:'堆',p:'duī',m:'堆',e:'一堆',lv:2},
+{c:'填',p:'tián',m:'填',e:'填空',lv:2},
+{c:'挖',p:'wā',m:'挖',e:'挖土',lv:2},
+{c:'埋',p:'mái',m:'埋',e:'埋起来',lv:3},
+{c:'种',p:'zhòng',m:'种',e:'种花',lv:1},
+{c:'拔',p:'bá',m:'拔',e:'拔草',lv:2},
+{c:'摘',p:'zhāi',m:'摘',e:'摘花',lv:1},
+{c:'采',p:'cǎi',m:'采',e:'采花',lv:1},
+{c:'追',p:'zhuī',m:'追',e:'追人',lv:1},
+{c:'逃',p:'táo',m:'逃跑',e:'逃跑',lv:2},
+{c:'躲',p:'duǒ',m:'躲',e:'躲藏',lv:1},
+{c:'探',p:'tàn',m:'探',e:'探头',lv:2},
+{c:'视',p:'shì',m:'看',e:'电视',lv:1},
+{c:'瞪',p:'dèng',m:'瞪',e:'瞪眼',lv:2},
+{c:'盯',p:'dīng',m:'盯',e:'盯着',lv:2},
+{c:'瞄',p:'miáo',m:'瞄准',e:'瞄准',lv:3},
+{c:'闭',p:'bì',m:'闭眼',e:'闭眼',lv:1},
+{c:'睁',p:'zhēng',m:'睁眼',e:'睁眼',lv:1},
+{c:'眨',p:'zhǎ',m:'眨眼',e:'眨眼',lv:2},
+{c:'闻',p:'wén',m:'闻',e:'闻一闻',lv:1},
+{c:'尝',p:'cháng',m:'尝',e:'尝一尝',lv:2},
+{c:'舔',p:'tiǎn',m:'舔',e:'舔冰淇淋',lv:2},
+{c:'咬',p:'yǎo',m:'咬',e:'咬一口',lv:1},
+{c:'嚼',p:'jiáo',m:'嚼',e:'嚼一嚼',lv:2},
+{c:'吞',p:'tūn',m:'吞',e:'吞下去',lv:2},
+{c:'吐',p:'tǔ',m:'吐',e:'吐出来',lv:2},
+{c:'吼',p:'hǒu',m:'吼',e:'吼叫',lv:2},
+{c:'喊',p:'hǎn',m:'喊',e:'大喊',lv:2},
+{c:'嚷',p:'rǎng',m:'嚷',e:'嚷嚷',lv:2},
+{c:'哄',p:'hǒng',m:'哄',e:'哄人',lv:2},
+{c:'夸',p:'kuā',m:'夸奖',e:'夸奖',lv:1},
+{c:'骂',p:'mà',m:'骂',e:'骂人',lv:2},
+{c:'罚',p:'fá',m:'惩罚',e:'惩罚',lv:3},
+{c:'奖',p:'jiǎng',m:'奖励',e:'奖励',lv:2},
+{c:'请',p:'qǐng',m:'请',e:'请坐',lv:1},
+{c:'谢',p:'xiè',m:'谢谢',e:'谢谢',lv:1},
+{c:'摸',p:'mō',m:'摸',e:'摸一摸',lv:1},
+{c:'揉',p:'róu',m:'揉',e:'揉一揉',lv:2},
+{c:'搓',p:'cuō',m:'搓',e:'搓手',lv:3},
+{c:'摔',p:'shuāi',m:'摔',e:'摔倒了',lv:1},
+{c:'撞',p:'zhuàng',m:'撞',e:'撞到了',lv:2},
+{c:'倒',p:'dǎo',m:'倒',e:'倒了',lv:1},
+{c:'翻',p:'fān',m:'翻',e:'翻跟头',lv:1},
+{c:'滚',p:'gǔn',m:'滚',e:'滚来滚去',lv:1},
+{c:'爬',p:'pá',m:'爬',e:'爬树',lv:1},
+{c:'滑',p:'huá',m:'滑',e:'滑滑梯',lv:1},
+{c:'溜',p:'liū',m:'溜',e:'溜冰',lv:2},
+{c:'游',p:'yóu',m:'游泳',e:'游泳',lv:1},
+{c:'渡',p:'dù',m:'渡河',e:'渡河',lv:3},
+{c:'漂',p:'piāo',m:'漂',e:'漂流',lv:2},
+{c:'沉',p:'chén',m:'沉',e:'沉下去',lv:2},
+{c:'浮',p:'fú',m:'浮',e:'浮上来',lv:2},
+{c:'落',p:'luò',m:'落下',e:'落叶',lv:2},
+{c:'飘',p:'piāo',m:'飘',e:'飘落',lv:2},
+{c:'止',p:'zhǐ',m:'停止',e:'停止',lv:2},
+{c:'休',p:'xiū',m:'休息',e:'休息',lv:1},
+{c:'息',p:'xī',m:'休息',e:'休息',lv:1},
+{c:'练',p:'liàn',m:'练习',e:'练习',lv:1},
+{c:'习',p:'xí',m:'学习',e:'练习',lv:1},
+{c:'考',p:'kǎo',m:'考试',e:'考试',lv:1},
+{c:'测',p:'cè',m:'测试',e:'测试',lv:2},
+{c:'验',p:'yàn',m:'实验',e:'实验',lv:3},
+{c:'查',p:'chá',m:'查看',e:'查看',lv:2},
+{c:'算',p:'suàn',m:'算',e:'算一算',lv:1},
+{c:'数',p:'shǔ',m:'数数',e:'数一数',lv:1},
+{c:'量',p:'liáng',m:'测量',e:'量一量',lv:2},
+{c:'较',p:'jiào',m:'比较',e:'比较',lv:2},
+{c:'赛',p:'sài',m:'比赛',e:'比赛',lv:1},
+{c:'胜',p:'shèng',m:'胜利',e:'胜利',lv:2},
+{c:'负',p:'fù',m:'失败',e:'胜负',lv:2},
+{c:'输',p:'shū',m:'输了',e:'输了',lv:1},
+{c:'赢',p:'yíng',m:'赢了',e:'赢了',lv:1},
+];
+
+// 去重
+const _seen = new Set();
+const DB_UNIQ = DB.filter(d => {
+    if (_seen.has(d.c)) return false;
+    _seen.add(d.c);
+    return true;
+});
+
+// ============================================================
+//  艾宾浩斯记忆曲线间隔（天）
+//  level 0: 刚学 → 1天后复习
+//  level 1: 2天后
+//  level 2: 4天后
+//  level 3: 7天后
+//  level 4: 15天后
+//  level 5: 30天后 → 已掌握
+// ============================================================
+const INTERVALS = [1, 2, 4, 7, 15, 30];
+const LEVEL_NAMES = ['刚学', '初识', '熟悉', '掌握', '巩固', '精通'];
+
+// ============================================================
+//  存储层 —— localStorage
+// ============================================================
+const STORE_KEY = 'hanzi乐园_v2';
+
+function loadStore() {
+    try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (raw) return JSON.parse(raw);
+        // 尝试从 v1 迁移
+        const old = localStorage.getItem('hanzi乐园_v1');
+        if (old) return JSON.parse(old);
+        return defaultStore();
+    } catch { return defaultStore(); }
+}
+function defaultStore() {
+    return {
+        learned: {},      // { char: { p, m, lv, nextTs, lastTs, correct, wrong } }
+        streak: 0,
+        lastDate: null,
+        totalCorrect: 0,
+        totalAnswered: 0,
+    };
+}
+function saveStore(s) {
+    localStorage.setItem(STORE_KEY, JSON.stringify(s));
+}
+
+let store = loadStore();
+
+// ============================================================
+//  辅助函数
+// ============================================================
+function today() { return new Date().toISOString().slice(0, 10); }
+function addDays(dateStr, n) {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+}
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+function $(id) { return document.getElementById(id); }
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    $(id).classList.add('active');
+}
+function goHome() {
+    updateHomeStats();
+    showPage('page-home');
+}
+
+// ---- 连续天数 ----
+function updateStreak() {
+    const t = today();
+    if (store.lastDate === t) return;
+    if (store.lastDate === addDays(t, -1)) {
+        store.streak++;
+    } else if (store.lastDate !== t) {
+        store.streak = 1;
+    }
+    store.lastDate = t;
+    saveStore(store);
+}
+
+// ---- 今日需复习字 ----
+function getReviewChars() {
+    const t = today();
+    return Object.keys(store.learned).filter(c => store.learned[c].nextTs <= t);
+}
+
+// ---- 可学新字 ----
+function getAvailableNewChars() {
+    const learnedSet = new Set(Object.keys(store.learned));
+    return DB_UNIQ.filter(d => !learnedSet.has(d.c));
+}
+
+// ---- 已掌握（lv >= 5）----
+function getMasteredCount() {
+    return Object.values(store.learned).filter(c => c.lv >= 5).length;
+}
+
+// ============================================================
+//  首页统计
+// ============================================================
+function updateHomeStats() {
+    updateStreak();
+    $('s-learned').textContent = Object.keys(store.learned).length;
+    $('s-mastered').textContent = getMasteredCount();
+    $('s-streak').textContent = store.streak;
+
+    const reviewCount = getReviewChars().length;
+    const newCount = getAvailableNewChars().length;
+    $('s-review-count').textContent = reviewCount;
+    $('s-new-count').textContent = newCount;
+
+    // 更新按钮副标题
+    if (reviewCount > 0 && newCount > 0) {
+        $('start-sub').textContent = reviewCount + ' 个复习 + ' + newCount + ' 个新字等你学';
+    } else if (reviewCount > 0) {
+        $('start-sub').textContent = reviewCount + ' 个汉字等你复习';
+    } else if (newCount > 0) {
+        $('start-sub').textContent = '来学新汉字吧！';
+    } else {
+        $('start-sub').textContent = '你已学完全部汉字，真厉害！';
+    }
+}
+
+// ============================================================
+//  Toast / Stars Rain
+// ============================================================
+function showToast(text, duration = 1200) {
+    const t = $('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+}
+function starsRain() {
+    const container = $('stars-rain');
+    const emojis = ['⭐', '🌟', '✨', '💫', '🎉'];
+    for (let i = 0; i < 20; i++) {
+        const s = document.createElement('span');
+        s.className = 'star-particle';
+        s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = '-40px';
+        s.style.animationDelay = Math.random() * 0.8 + 's';
+        s.style.animationDuration = (1 + Math.random()) + 's';
+        container.appendChild(s);
+        setTimeout(() => s.remove(), 3000);
+    }
+}
+
+// ============================================================
+//  Web Speech API — 发音（优化版）
+// ============================================================
+let zhVoice = null;  // 缓存选中的中文语音
+
+function pickZhVoice() {
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return;
+    // 优先选择中文女声（更自然温暖，适合儿童）
+    const preferred = ['zh-CN', 'cmn-Hans-CN', 'zh_TW', 'zh-HK'];
+    // 优先选带 "female" 或 "xiaoxiao" 等自然语音标识的
+    zhVoice = voices.find(v =>
+        preferred.some(p => v.lang.startsWith(p)) &&
+        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('xiaoxiao') || v.name.toLowerCase().includes('xiaoyi') || v.name.toLowerCase().includes('tts'))
+    );
+    // 退而求其次：任意中文语音
+    if (!zhVoice) {
+        zhVoice = voices.find(v => preferred.some(p => v.lang.startsWith(p)));
+    }
+    // 再退：包含 "zh" 的
+    if (!zhVoice) {
+        zhVoice = voices.find(v => v.lang.includes('zh'));
+    }
+}
+
+// 语音列表可能异步加载
+if ('speechSynthesis' in window) {
+    pickZhVoice();
+    speechSynthesis.onvoiceschanged = pickZhVoice;
+}
+
+function speak(text, opts) {
+    if (!('speechSynthesis' in window)) return;
+    // 取消上一段未播完的语音
+    speechSynthesis.cancel();
+
+    const isSentence = (text.length > 2);  // 超过2个字视为句子（例句）
+    const rate = (opts && opts.rate !== undefined) ? opts.rate : (isSentence ? 0.85 : 0.7);
+    const pitch = (opts && opts.pitch !== undefined) ? opts.pitch : 1.05;
+
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = rate;
+    u.pitch = pitch;
+    if (zhVoice) u.voice = zhVoice;
+
+    // 例句语速稍快，自然流畅
+    if (isSentence) {
+        u.rate = 0.9;
+    }
+
+    speechSynthesis.speak(u);
+}
+
+// ============================================================
+//  统一学习模式 —— 新字 + 复习混合
+// ============================================================
+const BATCH_SIZE = 10;  // 每轮 10 个字
+const MAX_REVIEW = 6;   // 最多 6 个复习
+const MAX_NEW = 8;      // 最多 8 个新字
+
+let learnQueue = [];    // [{c, p, m, e, type:'new'|'review', lv?}]
+let learnIdx = 0;
+let sessionCorrect = 0;
+let sessionWrong = 0;
+let sessionNewCount = 0;
+let sessionReviewCount = 0;
+let sessionReviewCorrect = 0;
+let marking = false;    // 防止连续点击
+
+function startLearning() {
+    // 收集复习字
+    const reviewChars = getReviewChars();
+    // 收集新字（优先 lv=1，不够再扩展到 lv=2）
+    const allNew = getAvailableNewChars();
+
+    let reviewList = [];
+    let newList = [];
+
+    // 优先复习（最多 MAX_REVIEW 个）
+    if (reviewChars.length > 0) {
+        reviewList = shuffle(reviewChars).slice(0, MAX_REVIEW).map(c => {
+            const s = store.learned[c];
+            // 找到 DB 中对应的完整信息（含例句）
+            const dbEntry = DB_UNIQ.find(d => d.c === c);
+            return {
+                c: c,
+                p: s.p,
+                m: s.m,
+                e: dbEntry ? dbEntry.e : (s.m + s.p),
+                type: 'review',
+                lv: s.lv
+            };
+        });
+    }
+
+    // 新字（填充到 BATCH_SIZE）
+    const needNew = BATCH_SIZE - reviewList.length;
+    if (needNew > 0 && allNew.length > 0) {
+        // 优先 lv=1
+        const lv1New = allNew.filter(d => d.lv === 1);
+        const lv2New = allNew.filter(d => d.lv === 2);
+        const pool = [...shuffle(lv1New), ...shuffle(lv2New)];
+        const picked = pool.slice(0, Math.min(needNew, MAX_NEW));
+        newList = picked.map(d => ({
+            c: d.c,
+            p: d.p,
+            m: d.m,
+            e: d.e,
+            type: 'new',
+            lv: -1
+        }));
+    }
+
+    // 合并并打乱顺序
+    learnQueue = shuffle([...reviewList, ...newList]);
+
+    if (learnQueue.length === 0) {
+        showToast('你已经学完所有汉字了！太厉害了！ 🎉');
+        return;
+    }
+
+    learnIdx = 0;
+    sessionCorrect = 0;
+    sessionWrong = 0;
+    sessionNewCount = newList.length;
+    sessionReviewCount = reviewList.length;
+    sessionReviewCorrect = 0;
+    marking = false;
+
+    showPage('page-learn');
+    showLearnCard();
+}
+
+function showLearnCard() {
+    if (learnIdx >= learnQueue.length) {
+        // 本轮结束
+        showSessionResult();
+        return;
+    }
+
+    marking = false;
+    const item = learnQueue[learnIdx];
+
+    // 更新类型标签
+    const tag = $('learn-tag');
+    if (item.type === 'new') {
+        tag.textContent = '新字';
+        tag.className = 'char-type-tag tag-new';
+    } else {
+        const lvName = item.lv >= 0 && item.lv < LEVEL_NAMES.length ? LEVEL_NAMES[item.lv] : '复习';
+        tag.textContent = '复习 · ' + lvName;
+        tag.className = 'char-type-tag tag-review';
+    }
+
+    // 更新卡片内容
+    $('l-char').textContent = item.c;
+    $('l-pinyin').textContent = item.p;
+    $('l-meaning').textContent = item.m;
+    $('l-example').textContent = '"' + item.e + '"';
+
+    // 重新触发动画
+    $('l-char').style.animation = 'none';
+    $('l-char').offsetHeight;
+    $('l-char').style.animation = '';
+
+    // 清除反馈
+    $('learn-feedback').textContent = '';
+    $('learn-feedback').className = 'feedback-msg';
+    $('learn-card').className = 'learn-card';
+
+    // 进度
+    const pct = Math.round((learnIdx / learnQueue.length) * 100);
+    $('learn-prog').style.width = pct + '%';
+    $('learn-prog-text').textContent = (learnIdx + 1) + ' / ' + learnQueue.length;
+
+    // 自动发音（复习字自动发音，新字不自动发音让孩子先看）
+    if (item.type === 'review') {
+        setTimeout(() => speak(item.c), 300);
+    }
+}
+
+function learnMark(known) {
+    if (marking) return;
+    marking = true;
+
+    const item = learnQueue[learnIdx];
+    const card = $('learn-card');
+    const feedback = $('learn-feedback');
+
+    if (known) {
+        sessionCorrect++;
+        card.classList.add('feedback-correct');
+
+        if (item.type === 'new') {
+            // 新字 → 加入 learned，设 lv=0
+            store.learned[item.c] = {
+                p: item.p,
+                m: item.m,
+                lv: 0,
+                nextTs: addDays(today(), INTERVALS[0]),
+                lastTs: today(),
+                correct: 1,
+                wrong: 0,
+            };
+            feedback.textContent = '✅ 记住了！明天复习哦';
+            feedback.style.color = '#00b894';
+        } else {
+            // 复习字 → 升级记忆
+            sessionReviewCorrect++;
+            updateMemory(item.c, true);
+            feedback.textContent = '✅ 太棒了！记忆升级';
+            feedback.style.color = '#00b894';
+        }
+        speak(item.c);
+    } else {
+        sessionWrong++;
+        card.classList.add('feedback-wrong');
+
+        if (item.type === 'new') {
+            // 新字不认识 → 也加入 learned，但 wrong 计数
+            store.learned[item.c] = {
+                p: item.p,
+                m: item.m,
+                lv: 0,
+                nextTs: addDays(today(), INTERVALS[0]),
+                lastTs: today(),
+                correct: 0,
+                wrong: 1,
+            };
+            feedback.textContent = '没关系，记住啦！明天再来';
+            feedback.style.color = '#e17055';
+        } else {
+            // 复习不认识 → 降级
+            updateMemory(item.c, false);
+            feedback.textContent = '再看一遍，很快记住的';
+            feedback.style.color = '#e17055';
+        }
+        // 不认识时多读几遍加深印象
+        speak(item.c);
+    }
+
+    store.totalAnswered++;
+    if (known) store.totalCorrect++;
+    saveStore(store);
+
+    // 延迟后进入下一个
+    setTimeout(() => {
+        learnIdx++;
+        showLearnCard();
+    }, known ? 800 : 1200);
+}
+
+function speakChar() {
+    if (learnIdx < learnQueue.length) {
+        speak(learnQueue[learnIdx].c);
+    }
+}
+function speakExample() {
+    if (learnIdx < learnQueue.length) {
+        speak(learnQueue[learnIdx].e);
+    }
+}
+
+// ============================================================
+//  记忆曲线更新
+// ============================================================
+function updateMemory(char, isCorrect) {
+    if (!store.learned[char]) return;
+    const rec = store.learned[char];
+    rec.lastTs = today();
+
+    if (isCorrect) {
+        rec.correct++;
+        rec.lv = Math.min(rec.lv + 1, INTERVALS.length);  // max lv = 6
+        rec.nextTs = addDays(today(), INTERVALS[Math.min(rec.lv, INTERVALS.length - 1)]);
+    } else {
+        rec.wrong++;
+        rec.lv = Math.max(0, rec.lv - 1);
+        rec.nextTs = addDays(today(), INTERVALS[0]);  // 退回1天后
+    }
+}
+
+// ============================================================
+//  本轮结果页
+// ============================================================
+function showSessionResult() {
+    const total = sessionCorrect + sessionWrong;
+    const accuracy = total > 0 ? Math.round((sessionCorrect / total) * 100) : 0;
+
+    let emoji, title;
+    if (accuracy >= 90) { emoji = '🏆'; title = '太厉害了！'; starsRain(); }
+    else if (accuracy >= 70) { emoji = '🎉'; title = '真棒！'; starsRain(); }
+    else if (accuracy >= 50) { emoji = '😊'; title = '不错哦！'; }
+    else { emoji = '💪'; title = '继续加油！'; }
+
+    let stars = '';
+    const starCount = accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : accuracy >= 50 ? 1 : 0;
+    for (let i = 0; i < 3; i++) {
+        stars += i < starCount ? '⭐' : '☆';
+    }
+
+    $('r-emoji').textContent = emoji;
+    $('r-title').textContent = title;
+    $('r-stars').textContent = stars;
+    $('r-correct').textContent = sessionCorrect;
+    $('r-total').textContent = total;
+    $('r-accuracy').textContent = accuracy + '%';
+
+    // 详细信息
+    let detailHTML = '';
+    detailHTML += '<div class="result-detail-row"><span>新学汉字</span><span class="val green">' + sessionNewCount + ' 个</span></div>';
+    detailHTML += '<div class="result-detail-row"><span>复习汉字</span><span class="val">' + sessionReviewCount + ' 个</span></div>';
+    if (sessionReviewCount > 0) {
+        detailHTML += '<div class="result-detail-row"><span>复习正确</span><span class="val green">' + sessionReviewCorrect + ' / ' + sessionReviewCount + '</span></div>';
+    }
+    detailHTML += '<div class="result-detail-row"><span>累计已学</span><span class="val">' + Object.keys(store.learned).length + ' 个</span></div>';
+    const remainingReview = getReviewChars().length;
+    if (remainingReview > 0) {
+        detailHTML += '<div class="result-detail-row"><span>待复习</span><span class="val orange">' + remainingReview + ' 个</span></div>';
+    }
+    $('r-detail').innerHTML = detailHTML;
+
+    showPage('page-result');
+}
+
+// ============================================================
+//  重置进度
+// ============================================================
+function resetProgress() {
+    if (confirm('确定要重置所有学习进度吗？这会清空已学记录。')) {
+        store = defaultStore();
+        saveStore(store);
+        updateHomeStats();
+        showToast('已重置，重新开始吧！');
+    }
+}
+
+// ============================================================
+//  初始化
+// ============================================================
+updateHomeStats();
+
+// ============================================================
+//  Service Worker 注册（PWA 离线支持）
+// ============================================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then((reg) => console.log('SW registered:', reg.scope))
+            .catch((err) => console.log('SW registration failed:', err));
+    });
+}
+</script>
+
+</body>
+</html>
